@@ -1,0 +1,42 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: rss-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rss-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: rss-ollama-init
+    depends_on:
+      - ollama
+    entrypoint: ["/bin/sh", "-lc"]
+    command: >
+      'until ollama list >/dev/null 2>&1; do sleep 2; done;
+      OLLAMA_HOST=http://ollama:11434 ollama pull llama3.1:8b;
+      OLLAMA_HOST=http://ollama:11434 ollama pull all-minilm'
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: "no"
+
+volumes:
+  qdrant_data:
+  ollama_data:
