@@ -79,7 +79,7 @@ Add/remove feeds by editing this file.
 
 - `POLL_INTERVAL_SECONDS`: loop interval (default `300`)
 - `MAX_ITEMS_PER_FEED`: max entries per feed per cycle (default `20`)
-- `MAX_LLM_ARTICLES_PER_CYCLE`: max records sent to Ollama per cycle (default `12`)
+- `MAX_LLM_ARTICLES_PER_CYCLE`: max records sent to Ollama per cycle (default `30`)
 - `REQUEST_TIMEOUT_SECONDS`: HTTP timeout for feed/model calls (default `20`)
 - `FEEDS_FILE`: feed config path (default `feeds.yaml`)
 - `OLLAMA_BASE_URL`: Ollama endpoint (default `http://localhost:11434`)

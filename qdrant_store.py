@@ -26,6 +26,9 @@ class QdrantStore:
         self._is_ready = False
 
     def ensure_collection(self) -> None:
+        if self._is_ready:
+            return
+
         collections = self._client.get_collections().collections
         exists = any(item.name == self._collection for item in collections)
 

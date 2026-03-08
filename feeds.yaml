@@ -1,7 +1,7 @@
 feeds:
-  # - name: Reuters World
-  #   url: https://feeds.reuters.com/Reuters/worldNews
-  #   enabled: true
+  - name: Reuters World
+    url: https://feeds.reuters.com/Reuters/worldNews
+    enabled: false
 
   - name: BBC World
     url: https://feeds.bbci.co.uk/news/world/rss.xml
@@ -15,9 +15,9 @@ feeds:
     url: https://www.cisa.gov/cybersecurity-advisories/all.xml
     enabled: true
 
-  # - name: Krebs on Security
-  #   url: https://krebsonsecurity.com/feed/
-  #   enabled: true
+  - name: Krebs on Security
+    url: https://krebsonsecurity.com/feed/
+    enabled: true
 
   - name: UN News
     url: https://news.un.org/feed/subscribe/en/news/all/rss.xml

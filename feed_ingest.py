@@ -82,11 +82,20 @@ def _fetch_feed(client: httpx.Client, feed: FeedConfig, attempts: int = 3) -> by
 
 def fetch_articles(config: AppConfig) -> list[ArticleRecord]:
     articles_by_id: dict[int, ArticleRecord] = {}
+    enabled_feed_count = 0
+
+    LOGGER.info(
+        "Starting feed poll for %s configured feeds (enabled-only)",
+        len(config.feeds),
+    )
 
     with httpx.Client(timeout=config.request_timeout_seconds) as client:
         for feed in config.feeds:
             if not feed.enabled:
+                LOGGER.debug("Skipping disabled feed %s (%s)", feed.name, feed.url)
                 continue
+
+            enabled_feed_count += 1
 
             try:
                 content = _fetch_feed(client, feed)
@@ -97,7 +106,17 @@ def fetch_articles(config: AppConfig) -> list[ArticleRecord]:
                 )
                 continue
 
-            for entry in parsed.entries[: config.max_items_per_feed]:
+            total_entries = len(parsed.entries)
+            selected_entries = parsed.entries[: config.max_items_per_feed]
+            LOGGER.info(
+                "Polled feed '%s' | url=%s entries=%s selected=%s",
+                feed.name,
+                feed.url,
+                total_entries,
+                len(selected_entries),
+            )
+
+            for entry in selected_entries:
                 title = str(entry.get("title", "")).strip()
                 link = str(entry.get("link", "")).strip()
                 published_raw = (
@@ -130,5 +149,9 @@ def fetch_articles(config: AppConfig) -> list[ArticleRecord]:
                 articles_by_id[record.id] = record
 
     records = list(articles_by_id.values())
-    LOGGER.info("Fetched %s unique articles", len(records))
+    LOGGER.info(
+        "Feed poll complete | enabled_feeds=%s unique_articles=%s",
+        enabled_feed_count,
+        len(records),
+    )
     return records

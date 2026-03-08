@@ -62,6 +62,37 @@ class OllamaClient:
             return []
         return [float(value) for value in embedding]
 
+    def embed_many(self, texts: list[str]) -> list[list[float]]:
+        if not texts:
+            return []
+
+        payload = {
+            "model": self._embedding_model,
+            "input": texts,
+        }
+
+        try:
+            response = self._post_with_retry("/api/embed", payload)
+            self._sleep_between_requests()
+            embeddings = response.get("embeddings", [])
+            if not isinstance(embeddings, list):
+                return []
+
+            normalized: list[list[float]] = []
+            for item in embeddings:
+                if not isinstance(item, list):
+                    normalized.append([])
+                    continue
+                normalized.append([float(value) for value in item])
+            return normalized
+        except Exception as exc:
+            # Fallback for older Ollama builds that do not support /api/embed.
+            LOGGER.warning(
+                "Batch embedding endpoint unavailable; falling back to per-item embedding: %s",
+                exc,
+            )
+            return [self.embed(text) for text in texts]
+
     def _post_with_retry(self, endpoint: str, payload: dict, attempts: int = 3) -> dict:
         last_error: Exception | None = None
 

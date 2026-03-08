@@ -58,7 +58,7 @@ def load_config() -> AppConfig:
         feeds=feeds,
         poll_interval_seconds=_env_int("POLL_INTERVAL_SECONDS", 600),
         max_items_per_feed=_env_int("MAX_ITEMS_PER_FEED", 20),
-        max_llm_articles_per_cycle=_env_int("MAX_LLM_ARTICLES_PER_CYCLE", 12),
+        max_llm_articles_per_cycle=_env_int("MAX_LLM_ARTICLES_PER_CYCLE", 30),
         request_timeout_seconds=_env_int("REQUEST_TIMEOUT_SECONDS", 30),
         ollama_base_url=_env_str("OLLAMA_BASE_URL", "http://localhost:11434"),
         ollama_summary_model=_env_str("OLLAMA_SUMMARY_MODEL", "llama3.1:8b"),
