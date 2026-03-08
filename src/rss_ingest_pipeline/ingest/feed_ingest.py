@@ -11,8 +11,8 @@ from email.utils import parsedate_to_datetime
 import feedparser
 import httpx
 
-from models import ArticleRecord
-from settings import AppConfig, FeedConfig
+from ..config import AppConfig, FeedConfig
+from ..models import ArticleRecord
 
 LOGGER = logging.getLogger(__name__)
 TAG_RE = re.compile(r"<[^>]+>")

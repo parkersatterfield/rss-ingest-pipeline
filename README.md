@@ -18,11 +18,18 @@ Always-on Python pipeline that ingests configurable RSS feeds, generates concise
 
 `fetch -> normalize -> summarize -> embed -> upsert`
 
-- `feed_ingest.py`: pulls and normalizes RSS entries.
-- `ollama_client.py`: local model calls for summary and embedding.
-- `qdrant_store.py`: collection creation, date indexing, upserts.
-- `pipeline.py`: orchestrates one full ingest cycle.
-- `main.py`: long-running loop (or one-shot mode).
+Core code now lives under `src/rss_ingest_pipeline/`:
+
+- `src/rss_ingest_pipeline/config.py`: environment + feed config loading.
+- `src/rss_ingest_pipeline/models.py`: shared data models.
+- `src/rss_ingest_pipeline/ingest/feed_ingest.py`: RSS fetch and normalization.
+- `src/rss_ingest_pipeline/ingest/ollama_client.py`: summary and embedding calls.
+- `src/rss_ingest_pipeline/ingest/qdrant_store.py`: Qdrant setup and upserts.
+- `src/rss_ingest_pipeline/ingest/pipeline.py`: full ingest cycle orchestration.
+- `src/rss_ingest_pipeline/ingest/cli.py`: ingest CLI entrypoint.
+- `src/rss_ingest_pipeline/query/service.py`: keyword/date query service.
+- `src/rss_ingest_pipeline/api/server.py`: FastAPI server.
+- `src/rss_ingest_pipeline/mcp/server.py`: MCP server and tool definitions.
 
 ## Quick Start
 
@@ -48,19 +55,119 @@ docker compose run --rm ollama-init
 
 Copy `.env.example` to `.env` and adjust values if needed.
 
-### 5. Run pipeline
+### 5. Run Ingest Pipeline
 
-Run continuously:
-
-```powershell
-uv run python main.py
-```
-
-Run once:
+Run continuously (recommended while API/MCP are running):
 
 ```powershell
-uv run python main.py --once
+uv run ingest --log-level INFO
 ```
+
+Run one cycle only:
+
+```powershell
+uv run ingest --once --log-level INFO
+```
+
+## End-to-End Runbook
+
+Use 3 terminals so the system stays live while you query it.
+
+1. Terminal A: keep ingest running
+
+```powershell
+uv run ingest --log-level INFO
+```
+
+2. Terminal B: start query API
+
+```powershell
+uv run api
+```
+
+3. Terminal C: start MCP server (for LLM tool use)
+
+```powershell
+uv run mcp
+```
+
+4. Optional: if you only want to backfill first, run a one-shot cycle before starting API/MCP
+
+```powershell
+uv run ingest --once --log-level INFO
+```
+
+## Scripts
+
+Project scripts are defined in `pyproject.toml`:
+
+- `uv run ingest` -> runs `rss_ingest_pipeline.ingest.cli:main`
+- `uv run api` -> runs the FastAPI server on `0.0.0.0:8000`
+- `uv run mcp` -> runs the MCP server (stdio)
+
+Common examples:
+
+```powershell
+uv run ingest --once --log-level INFO
+uv run api
+uv run mcp
+```
+
+## Verify Services
+
+Pipeline health is visible in logs via `Cycle complete | fetched=... upserted=...`.
+
+API checks:
+
+```powershell
+curl "http://localhost:8000/health"
+curl "http://localhost:8000/search?keyword=cyber&published_from=2026-03-01T00:00:00Z&limit=10"
+```
+
+MCP check (from Python, same service layer used by MCP tools):
+
+```powershell
+uv run python -c "from rss_ingest_pipeline.config import load_config; from rss_ingest_pipeline.query.service import ArticleQueryService; svc=ArticleQueryService(load_config()); print(len(svc.recent(limit=3)))"
+```
+
+## Query API
+
+Lightweight API for keyword and published-date filtering over Qdrant payloads.
+
+Start server:
+
+```powershell
+uv run api
+```
+
+If startup fails, check whether port `8000` is already in use and retry with another port, for example `--port 8001`.
+
+Example query:
+
+```powershell
+curl "http://localhost:8000/search?keyword=cyber&published_from=2026-03-01T00:00:00Z&limit=10"
+```
+
+Endpoints:
+
+- `GET /health`
+- `GET /search?keyword=...&published_from=...&published_to=...&limit=...&scan_limit=...`
+
+## MCP Server
+
+MCP server exposing the same article search as an LLM tool.
+
+Start MCP server (stdio transport):
+
+```powershell
+uv run mcp
+```
+
+Available tool:
+
+- `search_articles(keyword, published_from, published_to, limit, scan_limit)`
+- `get_article_by_id(article_id)`
+- `recent_articles(limit, published_from, published_to, scan_limit)`
 
 ## Feed Configuration
 

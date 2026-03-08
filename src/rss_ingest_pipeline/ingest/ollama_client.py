@@ -5,7 +5,7 @@ import time
 
 import httpx
 
-from settings import AppConfig
+from ..config import AppConfig
 
 LOGGER = logging.getLogger(__name__)
 

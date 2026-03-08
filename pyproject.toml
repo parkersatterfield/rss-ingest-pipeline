@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "rss-ingest-pipeline"
 version = "0.1.0"
@@ -6,8 +10,26 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
 	"feedparser>=6.0.11",
+	"fastapi>=0.116.1",
 	"httpx>=0.28.1",
+	"mcp>=1.13.1",
 	"python-dotenv>=1.1.1",
 	"pyyaml>=6.0.2",
 	"qdrant-client>=1.15.1",
+	"uvicorn>=0.35.0",
 ]
+
+[project.scripts]
+ingest = "rss_ingest_pipeline.ingest.cli:main"
+api = "rss_ingest_pipeline.api.server:run"
+mcp = "rss_ingest_pipeline.mcp.server:run"
+
+[tool.uv]
+package = true
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["rss_ingest_pipeline*"]

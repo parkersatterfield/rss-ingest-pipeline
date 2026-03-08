@@ -4,8 +4,8 @@ import argparse
 import logging
 import time
 
-from pipeline import IngestPipeline
-from settings import load_config
+from ..config import load_config
+from .pipeline import IngestPipeline
 
 
 def _build_parser() -> argparse.ArgumentParser:

@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-from feed_ingest import fetch_articles
-from models import ArticleRecord, VectorPoint
-from ollama_client import OllamaClient
-from qdrant_store import QdrantStore
-from settings import AppConfig
+from ..config import AppConfig
+from ..models import ArticleRecord, VectorPoint
+from .feed_ingest import fetch_articles
+from .ollama_client import OllamaClient
+from .qdrant_store import QdrantStore
 
 LOGGER = logging.getLogger(__name__)
 

@@ -11,8 +11,8 @@ from qdrant_client.http.models import (
     VectorParams,
 )
 
-from models import VectorPoint
-from settings import AppConfig
+from ..config import AppConfig
+from ..models import VectorPoint
 
 LOGGER = logging.getLogger(__name__)
 
